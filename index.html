@@ -2,28 +2,327 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Скоро ✨</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Для Карины 💌</title>
 <style>
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: Georgia, serif;
-    background: linear-gradient(135deg, #ffd6e0, #fff1e6);
-    color: #6b2c3e;
-    text-align: center;
+  :root {
+    --pink: #f7c6d3;
+    --rose: #e88aa3;
+    --deep: #7a2e45;
+    --cream: #fff8f3;
+    --paper: #fffdf9;
   }
-  h1 { font-size: 2.2rem; margin: 0 0 .5rem; }
-  p { font-size: 1.1rem; opacity: .8; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--deep);
+    background: radial-gradient(ellipse at top, #ffe3ea 0%, #fbd3dd 45%, #f5c2cf 100%);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ---------- плавающие сердечки на фоне ---------- */
+  .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .heart {
+    position: absolute; bottom: -40px;
+    color: rgba(232, 138, 163, .45);
+    animation: floatUp linear infinite;
+    user-select: none;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
+  }
+
+  /* ---------- экран с конвертом ---------- */
+  .stage {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity .8s ease;
+  }
+  .title {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-style: italic;
+    margin-bottom: 36px;
+    text-align: center;
+    letter-spacing: .5px;
+    text-shadow: 0 2px 10px rgba(255,255,255,.6);
+  }
+
+  .envelope {
+    position: relative;
+    width: min(340px, 82vw);
+    aspect-ratio: 3 / 2;
+    cursor: pointer;
+    animation: bob 3s ease-in-out infinite;
+    filter: drop-shadow(0 18px 30px rgba(122, 46, 69, .25));
+  }
+  .envelope.open { animation: none; cursor: default; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+  .env-back {
+    position: absolute; inset: 0;
+    background: #f2a7bb;
+    border-radius: 10px;
+  }
+  .letter {
+    position: absolute;
+    left: 6%; right: 6%; top: 8%; bottom: 8%;
+    background: var(--paper);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-style: italic; font-size: 1.1rem;
+    transition: transform .9s cubic-bezier(.2,.8,.2,1) .5s;
+    z-index: 2;
+  }
+  .envelope.open .letter { transform: translateY(-62%); }
+  .env-front {
+    position: absolute; inset: 0;
+    z-index: 3;
+    border-radius: 10px;
+    pointer-events: none;
+    background: linear-gradient(160deg, #f9c2d0, #f3adc0);
+    clip-path: polygon(0 0, 50% 56%, 100% 0, 100% 100%, 0 100%);
+  }
+  .flap {
+    position: absolute; top: 0; left: 0; width: 100%; height: 58%;
+    background: #ee9db2;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform .6s ease, z-index 0s .3s;
+    z-index: 4;
+  }
+  .envelope.open .flap { transform: rotateX(180deg); z-index: 1; }
+  .seal {
+    position: absolute; left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    width: 54px; height: 54px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #e5677f, #b8405a);
+    color: #fff; font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,.2);
+    z-index: 5;
+    transition: opacity .3s ease;
+  }
+  .envelope.open .seal { opacity: 0; }
+  .stage.opened .hint { visibility: hidden; }
+
+  .hint {
+    margin-top: 30px; font-size: .95rem; opacity: .75;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: .45; } 50% { opacity: .9; } }
+
+  /* ---------- письмо ---------- */
+  .card-wrap {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 6vh 16px;
+    overflow-y: auto;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1s ease;
+  }
+  .card-wrap.show { opacity: 1; pointer-events: auto; }
+  .card {
+    width: min(620px, 100%);
+    background: var(--paper);
+    border-radius: 14px;
+    padding: clamp(28px, 6vw, 56px) clamp(22px, 6vw, 52px);
+    box-shadow: 0 25px 60px rgba(122, 46, 69, .25);
+    transform: translateY(30px) scale(.97);
+    transition: transform 1s cubic-bezier(.2,.8,.2,1);
+    position: relative;
+    margin-bottom: 6vh;
+  }
+  .card-wrap.show .card { transform: none; }
+  .card::before {
+    content: ""; position: absolute; inset: 10px;
+    border: 1px solid rgba(232, 138, 163, .35);
+    border-radius: 9px; pointer-events: none;
+  }
+  .card h1 {
+    font-size: clamp(1.7rem, 5.5vw, 2.5rem);
+    font-weight: normal; font-style: italic;
+    text-align: center; margin-bottom: 8px;
+    color: #b8405a;
+  }
+  .divider { text-align: center; color: var(--rose); margin: 4px 0 26px; letter-spacing: 8px; }
+  .card p {
+    font-size: clamp(1.02rem, 2.6vw, 1.15rem);
+    line-height: 1.75;
+    margin-bottom: 18px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .8s ease, transform .8s ease;
+  }
+  .card p.visible { opacity: 1; transform: none; }
+  .signature {
+    text-align: right; font-style: italic; margin-top: 28px;
+    font-size: 1.15rem;
+  }
+
+  /* ---------- кнопка музыки ---------- */
+  .music-btn {
+    position: fixed; right: 16px; bottom: 16px; z-index: 20;
+    width: 48px; height: 48px; border-radius: 50%;
+    border: none; cursor: pointer;
+    background: rgba(255,255,255,.85);
+    color: var(--deep); font-size: 20px;
+    box-shadow: 0 4px 14px rgba(122,46,69,.2);
+    display: none;
+  }
+  .music-btn.show { display: block; }
+
+  canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
 </style>
 </head>
 <body>
-  <div>
-    <h1>Здесь скоро будет сюрприз 💝</h1>
-    <p>Тестовая страница: если ты её видишь, значит, хостинг работает.</p>
+
+<div class="hearts" id="hearts"></div>
+<canvas id="confetti"></canvas>
+
+<!-- ===== Экран с конвертом ===== -->
+<div class="stage" id="stage">
+  <div class="title">Карина, тебе письмо ✨</div>
+  <div class="envelope" id="envelope" role="button" aria-label="Открыть письмо">
+    <div class="env-back"></div>
+    <div class="letter">С днём рождения!</div>
+    <div class="env-front"></div>
+    <div class="flap"></div>
+    <div class="seal">♥</div>
   </div>
+  <div class="hint">нажми на конверт</div>
+</div>
+
+<!-- ===== Само письмо ===== -->
+<div class="card-wrap" id="cardWrap">
+  <div class="card">
+    <h1>С днём рождения, Карина!</h1>
+    <div class="divider">♥ ♥ ♥</div>
+
+    <!-- ТЕКСТ ПОЗДРАВЛЕНИЯ: каждый абзац — отдельный <p> -->
+    <p>Здесь будет первый абзац поздравления. Пока это просто заглушка, чтобы было видно, как выглядит текст на странице.</p>
+    <p>Второй абзац. Абзацы появляются по очереди, плавно, как будто письмо читается вслух.</p>
+    <p>Третий абзац — пожелания. Можно сколько угодно абзацев, страница сама прокрутится.</p>
+
+    <div class="signature">Твой Никита ♥</div>
+  </div>
+</div>
+
+<button class="music-btn" id="musicBtn" aria-label="Музыка">♪</button>
+
+<!-- Музыка: положи файл music.mp3 рядом с index.html. Если файла нет — сайт просто работает без музыки. -->
+<audio id="music" src="music.mp3" loop preload="auto"></audio>
+
+<script>
+  /* ---------- сердечки на фоне ---------- */
+  const heartsBox = document.getElementById('hearts');
+  const heartChars = ['♥', '❤', '♡'];
+  for (let i = 0; i < 18; i++) {
+    const h = document.createElement('span');
+    h.className = 'heart';
+    h.textContent = heartChars[i % heartChars.length];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = (14 + Math.random() * 22) + 'px';
+    h.style.animationDuration = (9 + Math.random() * 10) + 's';
+    h.style.animationDelay = (-Math.random() * 18) + 's';
+    heartsBox.appendChild(h);
+  }
+
+  /* ---------- конфетти (без внешних библиотек) ---------- */
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  let pieces = [];
+  function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+  addEventListener('resize', resize); resize();
+
+  const colors = ['#e88aa3', '#f7c6d3', '#ffd700', '#ffffff', '#b8405a', '#ffb3c6'];
+  function burst() {
+    for (let i = 0; i < 180; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 80,
+        y: innerHeight / 2,
+        vx: (Math.random() - .5) * 14,
+        vy: -Math.random() * 15 - 4,
+        size: 5 + Math.random() * 7,
+        rot: Math.random() * 360,
+        vr: (Math.random() - .5) * 12,
+        color: colors[(Math.random() * colors.length) | 0],
+        heart: Math.random() < .25,
+        life: 0
+      });
+    }
+    if (!animating) { animating = true; requestAnimationFrame(tick); }
+  }
+  let animating = false;
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.vy += .32; p.vx *= .99;
+      p.x += p.vx; p.y += p.vy;
+      p.rot += p.vr; p.life++;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      if (p.heart) {
+        ctx.font = (p.size * 2) + 'px serif';
+        ctx.fillText('♥', -p.size / 2, p.size / 2);
+      } else {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      }
+      ctx.restore();
+    });
+    pieces = pieces.filter(p => p.y < innerHeight + 40);
+    if (pieces.length) requestAnimationFrame(tick);
+    else { animating = false; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+
+  /* ---------- музыка ---------- */
+  const music = document.getElementById('music');
+  const musicBtn = document.getElementById('musicBtn');
+  let musicOk = true;
+  music.addEventListener('error', () => { musicOk = false; });
+  musicBtn.addEventListener('click', () => {
+    if (music.paused) { music.play().catch(() => {}); musicBtn.textContent = '♪'; }
+    else { music.pause(); musicBtn.textContent = '🔇'; }
+  });
+
+  /* ---------- открытие конверта ---------- */
+  const envelope = document.getElementById('envelope');
+  const stage = document.getElementById('stage');
+  const cardWrap = document.getElementById('cardWrap');
+  let opened = false;
+
+  envelope.addEventListener('click', () => {
+    if (opened) return;
+    opened = true;
+    envelope.classList.add('open');
+    stage.classList.add('opened');
+
+    // музыка стартует по клику — браузеры не дают включать звук без действия пользователя
+    if (musicOk) {
+      music.volume = 0;
+      music.play().then(() => {
+        musicBtn.classList.add('show');
+        let v = 0;
+        const fade = setInterval(() => { v = Math.min(v + .05, .6); music.volume = v; if (v >= .6) clearInterval(fade); }, 150);
+      }).catch(() => {});
+    }
+
+    setTimeout(burst, 900);
+    setTimeout(() => { stage.style.opacity = '0'; cardWrap.classList.add('show'); }, 1900);
+    setTimeout(() => {
+      stage.style.display = 'none';
+      document.querySelectorAll('.card p').forEach((p, i) => {
+        setTimeout(() => p.classList.add('visible'), i * 700);
+      });
+    }, 2600);
+  });
+</script>
 </body>
 </html>
